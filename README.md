@@ -206,7 +206,7 @@ As migrações ficam em `src/main/resources/db/migration/`:
 
 - `V1__create_tables.sql` - Criação das tabelas `conta` e `transacao` com índices
 
-## 🧪 Testes
+##  Testes
 
 ```bash
 # Executar todos os testes
@@ -294,7 +294,7 @@ volumes:
    - Enums persistidos como `STRING`
    - IDs gerados pelo banco (`IDENTITY`)
 
-## 🔧 Configuração CORS
+##  Configuração CORS
 
 Configurado em `CorsConfig.java` para permitir:
 - http://localhost:3000 (React)
@@ -302,7 +302,7 @@ Configurado em `CorsConfig.java` para permitir:
 - http://localhost:8080
 - http://127.0.0.1:5500 (Live Server)
 
-## 📦 Build para Produção
+##  Build para Produção
 
 ```bash
 # Gerar JAR
@@ -312,24 +312,3 @@ Configurado em `CorsConfig.java` para permitir:
 java -jar target/projetospring-0.0.1-SNAPSHOT.jar
 ```
 
-## 📄 Licença
-
-Projeto acadêmico - Fatec PG - Disciplina de Spring Boot + PostgreSQL
-
----
-
-## ✅ Checklist de Entrega
-
-- [x] Backend Spring Boot com PostgreSQL
-- [x] Entidades `Conta` e `Transacao` modeladas corretamente
-- [x] Regras de negócio nas entidades (`calcularSaldo`, `atualizarDescricao`, etc.)
-- [x] Repositórios com queries nativas, derivadas e JPQL
-- [x] Services com `@Transactional`
-- [x] Controllers REST com DTOs e validações
-- [x] Tratamento global de exceções (`@RestControllerAdvice`)
-- [x] Flyway para migração do banco
-- [x] Docker Compose para PostgreSQL
-- [x] SpringDoc OpenAPI (Swagger UI)
-- [x] CORS configurado
-- [x] DataLoader com dados de exemplo
-- [x] README com instruções completas
