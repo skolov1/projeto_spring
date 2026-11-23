@@ -58,7 +58,7 @@ public class TransacaoController {
     public ResponseEntity<TransacaoResponseDTO> buscarPorId(
             @Parameter(description = "ID da conta") @PathVariable Long contaId,
             @Parameter(description = "ID da transação") @PathVariable Long id) {
-        return ResponseEntity.ok(transacaoService.buscarPorId(id));
+        return ResponseEntity.ok(transacaoService.buscarPorId(contaId, id));
     }
 
     @PatchMapping("/{id}/descricao")
@@ -67,7 +67,7 @@ public class TransacaoController {
             @Parameter(description = "ID da conta") @PathVariable Long contaId,
             @Parameter(description = "ID da transação") @PathVariable Long id,
             @Valid @RequestBody AtualizarDescricaoRequestDTO request) {
-        return ResponseEntity.ok(transacaoService.atualizarDescricao(id, request));
+        return ResponseEntity.ok(transacaoService.atualizarDescricao(contaId, id, request));
     }
 
     @DeleteMapping("/{id}")
@@ -75,7 +75,7 @@ public class TransacaoController {
     public ResponseEntity<Void> remover(
             @Parameter(description = "ID da conta") @PathVariable Long contaId,
             @Parameter(description = "ID da transação") @PathVariable Long id) {
-        transacaoService.remover(id);
+        transacaoService.remover(contaId, id);
         return ResponseEntity.noContent().build();
     }
 

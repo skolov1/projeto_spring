@@ -90,9 +90,9 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve buscar transação por ID")
     void deveBuscarTransacaoPorId() {
-        when(transacaoRepository.findById(1L)).thenReturn(Optional.of(transacao));
+        when(transacaoRepository.findByIdAndContaId(1L, 1L)).thenReturn(Optional.of(transacao));
 
-        TransacaoResponseDTO result = transacaoService.buscarPorId(1L);
+        TransacaoResponseDTO result = transacaoService.buscarPorId(1L, 1L);
 
         assertNotNull(result);
         assertEquals("Teste", result.getDescricao());
@@ -102,9 +102,28 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao buscar transação inexistente")
     void deveLancarExcecaoAoBuscarTransacaoInexistente() {
-        when(transacaoRepository.findById(999L)).thenReturn(Optional.empty());
+        when(transacaoRepository.findByIdAndContaId(999L, 1L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(1L)).thenReturn(true);
 
-        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.buscarPorId(999L));
+        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.buscarPorId(1L, 999L));
+    }
+
+    @Test
+    @DisplayName("Não deve buscar transação que pertence a outra conta")
+    void naoDeveBuscarTransacaoDeOutraConta() {
+        when(transacaoRepository.findByIdAndContaId(1L, 2L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(2L)).thenReturn(true);
+
+        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.buscarPorId(2L, 1L));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção de conta ao buscar transação em conta inexistente")
+    void deveLancarExcecaoDeContaAoBuscarEmContaInexistente() {
+        when(transacaoRepository.findByIdAndContaId(1L, 999L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(999L)).thenReturn(false);
+
+        assertThrows(ContaNaoEncontradaException.class, () -> transacaoService.buscarPorId(999L, 1L));
     }
 
     @Test
@@ -152,10 +171,10 @@ class TransacaoServiceTest {
     void deveAtualizarDescricaoTransacao() {
         AtualizarDescricaoRequestDTO request = new AtualizarDescricaoRequestDTO("Nova Descrição");
 
-        when(transacaoRepository.findById(1L)).thenReturn(Optional.of(transacao));
+        when(transacaoRepository.findByIdAndContaId(1L, 1L)).thenReturn(Optional.of(transacao));
         when(transacaoRepository.save(any(Transacao.class))).thenReturn(transacao);
 
-        TransacaoResponseDTO result = transacaoService.atualizarDescricao(1L, request);
+        TransacaoResponseDTO result = transacaoService.atualizarDescricao(1L, 1L, request);
 
         assertEquals("Nova Descrição", result.getDescricao());
         verify(transacaoRepository).save(any(Transacao.class));
@@ -166,17 +185,30 @@ class TransacaoServiceTest {
     void deveLancarExcecaoAoAtualizarDescricaoVazia() {
         AtualizarDescricaoRequestDTO request = new AtualizarDescricaoRequestDTO("");
 
-        when(transacaoRepository.findById(1L)).thenReturn(Optional.of(transacao));
+        when(transacaoRepository.findByIdAndContaId(1L, 1L)).thenReturn(Optional.of(transacao));
 
-        assertThrows(DescricaoVaziaException.class, () -> transacaoService.atualizarDescricao(1L, request));
+        assertThrows(DescricaoVaziaException.class, () -> transacaoService.atualizarDescricao(1L, 1L, request));
+    }
+
+    @Test
+    @DisplayName("Não deve atualizar descrição de transação de outra conta")
+    void naoDeveAtualizarDescricaoDeTransacaoDeOutraConta() {
+        AtualizarDescricaoRequestDTO request = new AtualizarDescricaoRequestDTO("Invasão");
+
+        when(transacaoRepository.findByIdAndContaId(1L, 2L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(2L)).thenReturn(true);
+
+        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.atualizarDescricao(2L, 1L, request));
+        assertEquals("Teste", transacao.getDescricao());
+        verify(transacaoRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Deve remover transação")
     void deveRemoverTransacao() {
-        when(transacaoRepository.findById(1L)).thenReturn(Optional.of(transacao));
+        when(transacaoRepository.findByIdAndContaId(1L, 1L)).thenReturn(Optional.of(transacao));
 
-        transacaoService.remover(1L);
+        transacaoService.remover(1L, 1L);
 
         verify(transacaoRepository).delete(transacao);
         assertNull(transacao.getConta());
@@ -185,8 +217,19 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao remover transação inexistente")
     void deveLancarExcecaoAoRemoverTransacaoInexistente() {
-        when(transacaoRepository.findById(999L)).thenReturn(Optional.empty());
+        when(transacaoRepository.findByIdAndContaId(999L, 1L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(1L)).thenReturn(true);
 
-        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.remover(999L));
+        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.remover(1L, 999L));
+    }
+
+    @Test
+    @DisplayName("Não deve remover transação de outra conta")
+    void naoDeveRemoverTransacaoDeOutraConta() {
+        when(transacaoRepository.findByIdAndContaId(1L, 2L)).thenReturn(Optional.empty());
+        when(contaRepository.existsById(2L)).thenReturn(true);
+
+        assertThrows(TransacaoNaoEncontradaException.class, () -> transacaoService.remover(2L, 1L));
+        verify(transacaoRepository, never()).delete(any());
     }
 }

@@ -82,18 +82,23 @@ public class Conta {
                 .orElse(null);
     }
 
+    public BigDecimal calcularTotalReceitas() {
+        return somarPorTipo(TipoTransacao.RECEITA);
+    }
+
+    public BigDecimal calcularTotalDespesas() {
+        return somarPorTipo(TipoTransacao.DESPESA);
+    }
+
     public BigDecimal calcularSaldo() {
-        BigDecimal receitas = transacoes.stream()
-                .filter(t -> t.getTipo() == TipoTransacao.RECEITA)
+        return saldoInicial.add(calcularTotalReceitas()).subtract(calcularTotalDespesas());
+    }
+
+    private BigDecimal somarPorTipo(TipoTransacao tipo) {
+        return transacoes.stream()
+                .filter(t -> t.getTipo() == tipo)
                 .map(Transacao::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal despesas = transacoes.stream()
-                .filter(t -> t.getTipo() == TipoTransacao.DESPESA)
-                .map(Transacao::getValor)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        return saldoInicial.add(receitas).subtract(despesas);
     }
 
     public void exibirTransacoes() {

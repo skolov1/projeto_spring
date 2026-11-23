@@ -62,15 +62,13 @@ public class ContaService {
         Conta conta = contaRepository.findById(id)
                 .orElseThrow(() -> new ContaNaoEncontradaException(id));
 
-        BigDecimal saldoAtual = conta.calcularSaldo();
-
         return new SaldoResponseDTO(
                 conta.getId(),
                 conta.getNome(),
                 conta.getSaldoInicial(),
-                saldoAtual.subtract(conta.getSaldoInicial()).max(BigDecimal.ZERO), // total receitas aproximado
-                BigDecimal.ZERO, // será calculado corretamente abaixo
-                saldoAtual
+                conta.calcularTotalReceitas(),
+                conta.calcularTotalDespesas(),
+                conta.calcularSaldo()
         );
     }
 

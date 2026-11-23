@@ -72,10 +72,8 @@ public class TransacaoService {
                 .collect(Collectors.toList());
     }
 
-    public TransacaoResponseDTO buscarPorId(Long id) {
-        Transacao transacao = transacaoRepository.findById(id)
-                .orElseThrow(() -> new TransacaoNaoEncontradaException(id));
-        return toResponseDTO(transacao);
+    public TransacaoResponseDTO buscarPorId(Long contaId, Long id) {
+        return toResponseDTO(buscarTransacaoDaConta(contaId, id));
     }
 
     @Transactional
@@ -97,9 +95,8 @@ public class TransacaoService {
     }
 
     @Transactional
-    public TransacaoResponseDTO atualizarDescricao(Long id, AtualizarDescricaoRequestDTO request) {
-        Transacao transacao = transacaoRepository.findById(id)
-                .orElseThrow(() -> new TransacaoNaoEncontradaException(id));
+    public TransacaoResponseDTO atualizarDescricao(Long contaId, Long id, AtualizarDescricaoRequestDTO request) {
+        Transacao transacao = buscarTransacaoDaConta(contaId, id);
 
         try {
             transacao.atualizarDescricao(request.getNovaDescricao());
@@ -112,15 +109,25 @@ public class TransacaoService {
     }
 
     @Transactional
-    public void remover(Long id) {
-        Transacao transacao = transacaoRepository.findById(id)
-                .orElseThrow(() -> new TransacaoNaoEncontradaException(id));
+    public void remover(Long contaId, Long id) {
+        Transacao transacao = buscarTransacaoDaConta(contaId, id);
 
         Conta conta = transacao.getConta();
         if (conta != null) {
             conta.removerTransacao(transacao);
         }
         transacaoRepository.delete(transacao);
+    }
+
+    /**
+     * Busca a transação garantindo que ela pertence à conta informada na rota.
+     * Conta inexistente gera 404 de conta; transação de outra conta gera 404 de transação.
+     */
+    private Transacao buscarTransacaoDaConta(Long contaId, Long id) {
+        return transacaoRepository.findByIdAndContaId(id, contaId)
+                .orElseThrow(() -> contaRepository.existsById(contaId)
+                        ? new TransacaoNaoEncontradaException(id)
+                        : new ContaNaoEncontradaException(contaId));
     }
 
     private TransacaoResponseDTO toResponseDTO(Transacao transacao) {

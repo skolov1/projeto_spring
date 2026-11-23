@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
 
@@ -18,6 +19,8 @@ public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
             FROM transacao WHERE conta_id = :contaId
             """, nativeQuery = true)
     ResumoFinanceiro somarReceitasEDespesas(@Param("contaId") Long contaId);
+
+    Optional<Transacao> findByIdAndContaId(Long id, Long contaId);
 
     List<Transacao> findByTipo(TipoTransacao tipo);
 

@@ -45,7 +45,7 @@ public class ContaController {
         return ResponseEntity.ok(contaService.buscarPorId(id));
     }
 
-    @GetMapping("/{id}/transacoes")
+    @GetMapping("/{id}/detalhes")
     @Operation(summary = "Buscar conta com transações")
     public ResponseEntity<ContaResponseDTO> buscarComTransacoes(@Parameter(description = "ID da conta") @PathVariable Long id) {
         return ResponseEntity.ok(contaService.buscarPorIdComTransacoes(id));

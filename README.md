@@ -105,7 +105,7 @@ A API estará disponível em: **http://localhost:8080**
 | GET | `/contas` | Listar todas as contas |
 | POST | `/contas` | Criar nova conta |
 | GET | `/contas/{id}` | Buscar conta por ID |
-| GET | `/contas/{id}/transacoes` | Buscar conta com transações |
+| GET | `/contas/{id}/detalhes` | Buscar conta com transações |
 | GET | `/contas/{id}/saldo` | Calcular saldo atual |
 | GET | `/contas/{id}/resumo` | Resumo financeiro (query nativa) |
 

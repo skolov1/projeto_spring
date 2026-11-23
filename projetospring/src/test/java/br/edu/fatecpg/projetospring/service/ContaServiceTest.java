@@ -137,6 +137,35 @@ class ContaServiceTest {
     }
 
     @Test
+    @DisplayName("Deve retornar totais corretos de receitas e despesas no saldo")
+    void deveRetornarTotaisCorretosNoSaldo() {
+        conta.adicionarTransacao(new Transacao("Salário", new BigDecimal("5000.00"), TipoTransacao.RECEITA, java.time.LocalDate.of(2026, 1, 5), null));
+        conta.adicionarTransacao(new Transacao("Freelance", new BigDecimal("1200.00"), TipoTransacao.RECEITA, java.time.LocalDate.of(2026, 1, 20), null));
+        conta.adicionarTransacao(new Transacao("Aluguel", new BigDecimal("1500.00"), TipoTransacao.DESPESA, java.time.LocalDate.of(2026, 1, 10), null));
+        conta.adicionarTransacao(new Transacao("Mercado", new BigDecimal("800.00"), TipoTransacao.DESPESA, java.time.LocalDate.of(2026, 1, 15), null));
+        when(contaRepository.findById(1L)).thenReturn(Optional.of(conta));
+
+        SaldoResponseDTO result = contaService.calcularSaldo(1L);
+
+        assertEquals(new BigDecimal("6200.00"), result.getTotalReceitas());
+        assertEquals(new BigDecimal("2300.00"), result.getTotalDespesas());
+        assertEquals(new BigDecimal("4900.00"), result.getSaldoAtual());
+    }
+
+    @Test
+    @DisplayName("Saldo com mais despesas que receitas deve informar os totais reais")
+    void deveInformarTotaisReaisComSaldoNegativoEmRelacaoAoInicial() {
+        conta.adicionarTransacao(new Transacao("Aluguel", new BigDecimal("1500.00"), TipoTransacao.DESPESA, java.time.LocalDate.of(2026, 1, 10), null));
+        when(contaRepository.findById(1L)).thenReturn(Optional.of(conta));
+
+        SaldoResponseDTO result = contaService.calcularSaldo(1L);
+
+        assertEquals(BigDecimal.ZERO, result.getTotalReceitas());
+        assertEquals(new BigDecimal("1500.00"), result.getTotalDespesas());
+        assertEquals(new BigDecimal("-500.00"), result.getSaldoAtual());
+    }
+
+    @Test
     @DisplayName("Deve obter resumo financeiro via query nativa")
     void deveObterResumoFinanceiro() {
         when(contaRepository.findById(1L)).thenReturn(Optional.of(conta));

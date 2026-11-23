@@ -199,4 +199,14 @@ class TransacaoRepositoryTest {
         assertEquals(4, transacoesContaOriginal.size());
         assertEquals(1, transacoesOutraConta.size());
     }
+
+    @Test
+    @DisplayName("Derivada: deve encontrar transação apenas na conta à qual pertence")
+    void deveEncontrarTransacaoApenasNaPropriaConta() {
+        Conta outraConta = new Conta("Outra Conta", BigDecimal.ZERO);
+        entityManager.persistAndFlush(outraConta);
+
+        assertTrue(transacaoRepository.findByIdAndContaId(receita1.getId(), conta.getId()).isPresent());
+        assertTrue(transacaoRepository.findByIdAndContaId(receita1.getId(), outraConta.getId()).isEmpty());
+    }
 }
