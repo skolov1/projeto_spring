@@ -3,6 +3,7 @@ package br.edu.fatecpg.projetospring.service;
 import br.edu.fatecpg.projetospring.dto.request.TransacaoRequestDTO;
 import br.edu.fatecpg.projetospring.dto.request.AtualizarDescricaoRequestDTO;
 import br.edu.fatecpg.projetospring.dto.response.TransacaoResponseDTO;
+import br.edu.fatecpg.projetospring.exception.BusinessException;
 import br.edu.fatecpg.projetospring.exception.ContaNaoEncontradaException;
 import br.edu.fatecpg.projetospring.exception.TransacaoNaoEncontradaException;
 import br.edu.fatecpg.projetospring.exception.DescricaoVaziaException;
@@ -31,6 +32,8 @@ public class TransacaoService {
     }
 
     public List<TransacaoResponseDTO> listarPorConta(Long contaId, TipoTransacao tipo, String descricao, LocalDate inicio, LocalDate fim) {
+        validarPeriodo(inicio, fim);
+
         Conta conta = contaRepository.findById(contaId)
                 .orElseThrow(() -> new ContaNaoEncontradaException(contaId));
 
@@ -117,6 +120,15 @@ public class TransacaoService {
             conta.removerTransacao(transacao);
         }
         transacaoRepository.delete(transacao);
+    }
+
+    private void validarPeriodo(LocalDate inicio, LocalDate fim) {
+        if ((inicio == null) != (fim == null)) {
+            throw new BusinessException("Informe as datas inicio e fim juntas para filtrar por período", "PERIODO_INVALIDO");
+        }
+        if (inicio != null && inicio.isAfter(fim)) {
+            throw new BusinessException("A data inicio não pode ser posterior à data fim", "PERIODO_INVALIDO");
+        }
     }
 
     /**

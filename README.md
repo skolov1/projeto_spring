@@ -125,6 +125,8 @@ A API estará disponível em: **http://localhost:8080**
 - `inicio`: Data inicial (formato `yyyy-MM-dd`)
 - `fim`: Data final (formato `yyyy-MM-dd`)
 
+`inicio` e `fim` devem ser informados juntos, com `inicio <= fim`. Datas em formato inválido, período incompleto ou tipo inexistente retornam **400**.
+
 ## 📝 Exemplos de Uso
 
 ### Criar uma Conta

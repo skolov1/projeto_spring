@@ -2,6 +2,8 @@ package br.edu.fatecpg.projetospring.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,6 +20,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
@@ -34,9 +39,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            // Erros de classe (ex.: validação entre campos) não são FieldError
+            String chave = error instanceof FieldError fieldError ? fieldError.getField() : error.getObjectName();
+            errors.put(chave, error.getDefaultMessage());
         });
 
         ErrorResponse error = new ErrorResponse(
@@ -69,13 +74,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String message = ex.getMessage();
-        String errorCode = "DATA_INTEGRITY_VIOLATION";
+        // O detalhe do banco (SQL, nomes de constraints) fica só no log, nunca na resposta
+        log.warn("Violação de integridade de dados", ex);
 
-        if (message != null && message.contains("unique") || message != null && message.contains("duplicate")) {
-            errorCode = "DUPLICATE_ENTRY";
-            message = "Já existe um registro com estes dados";
-        }
+        String detalhe = ex.getMostSpecificCause().getMessage();
+        boolean duplicado = detalhe != null
+                && (detalhe.toLowerCase().contains("unique") || detalhe.toLowerCase().contains("duplicate"));
+
+        String errorCode = duplicado ? "DUPLICATE_ENTRY" : "DATA_INTEGRITY_VIOLATION";
+        String message = duplicado
+                ? "Já existe um registro com estes dados"
+                : "Os dados enviados violam uma restrição do banco de dados";
 
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
@@ -108,6 +117,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "PARAMETRO_INVALIDO",
+                "Valor inválido para o parâmetro '" + ex.getName() + "': '" + ex.getValue() + "'",
+                LocalDateTime.now()
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -121,6 +141,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Erro não tratado", ex);
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "INTERNAL_ERROR",
@@ -134,7 +155,7 @@ public class GlobalExceptionHandler {
         return switch (errorCode) {
             case "CONTA_NAO_ENCONTRADA", "TRANSACAO_NAO_ENCONTRADA", "ENTITY_NOT_FOUND" -> HttpStatus.NOT_FOUND;
             case "DUPLICATE_ENTRY" -> HttpStatus.CONFLICT;
-            case "DESCRICAO_VAZIA", "VALIDATION_ERROR", "CONSTRAINT_VIOLATION", "ILLEGAL_ARGUMENT", "MALFORMED_JSON" -> HttpStatus.BAD_REQUEST;
+            case "DESCRICAO_VAZIA", "PERIODO_INVALIDO", "PARAMETRO_INVALIDO", "VALIDATION_ERROR", "CONSTRAINT_VIOLATION", "ILLEGAL_ARGUMENT", "MALFORMED_JSON" -> HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

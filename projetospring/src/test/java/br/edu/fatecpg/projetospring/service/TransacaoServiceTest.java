@@ -3,6 +3,7 @@ package br.edu.fatecpg.projetospring.service;
 import br.edu.fatecpg.projetospring.dto.request.AtualizarDescricaoRequestDTO;
 import br.edu.fatecpg.projetospring.dto.request.TransacaoRequestDTO;
 import br.edu.fatecpg.projetospring.dto.response.TransacaoResponseDTO;
+import br.edu.fatecpg.projetospring.exception.BusinessException;
 import br.edu.fatecpg.projetospring.exception.ContaNaoEncontradaException;
 import br.edu.fatecpg.projetospring.exception.DescricaoVaziaException;
 import br.edu.fatecpg.projetospring.exception.TransacaoNaoEncontradaException;
@@ -85,6 +86,44 @@ class TransacaoServiceTest {
 
         assertEquals(1, result.size());
         verify(transacaoRepository).findByContaIdAndTipo(1L, TipoTransacao.RECEITA);
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar período com apenas a data inicial")
+    void deveRejeitarPeriodoSoComInicio() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> transacaoService.listarPorConta(1L, null, null, LocalDate.of(2026, 1, 1), null));
+
+        assertEquals("PERIODO_INVALIDO", ex.getErrorCode());
+        verifyNoInteractions(transacaoRepository);
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar período com apenas a data final")
+    void deveRejeitarPeriodoSoComFim() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> transacaoService.listarPorConta(1L, null, null, null, LocalDate.of(2026, 1, 31)));
+
+        assertEquals("PERIODO_INVALIDO", ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar período com data inicial depois da final")
+    void deveRejeitarPeriodoInvertido() {
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> transacaoService.listarPorConta(1L, null, null, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 1, 1)));
+
+        assertEquals("PERIODO_INVALIDO", ex.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Deve aceitar período de um único dia")
+    void deveAceitarPeriodoDeUmDia() {
+        LocalDate dia = LocalDate.of(2026, 1, 15);
+        when(contaRepository.findById(1L)).thenReturn(Optional.of(conta));
+        when(transacaoRepository.findByContaIdAndDataBetween(1L, dia, dia)).thenReturn(List.of(transacao));
+
+        assertEquals(1, transacaoService.listarPorConta(1L, null, null, dia, dia).size());
     }
 
     @Test
