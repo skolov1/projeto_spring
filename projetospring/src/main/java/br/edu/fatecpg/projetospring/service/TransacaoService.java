@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,39 @@ public class TransacaoService {
         }
 
         return transacoes.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lista transações de todas as contas usando as consultas derivadas e JPQL do repositório.
+     * A consulta base é escolhida pelo filtro informado; filtros adicionais são combinados em memória.
+     */
+    @Transactional(readOnly = true)
+    public List<TransacaoResponseDTO> listarTodas(TipoTransacao tipo, String descricao, LocalDate inicio, LocalDate fim) {
+        validarPeriodo(inicio, fim);
+
+        boolean temTipo = tipo != null;
+        boolean temDescricao = descricao != null && !descricao.isBlank();
+        boolean temPeriodo = inicio != null;
+
+        List<Transacao> base;
+        if (temPeriodo) {
+            base = transacaoRepository.findByDataBetween(inicio, fim);
+        } else if (temTipo) {
+            base = transacaoRepository.findByTipo(tipo);
+        } else if (temDescricao) {
+            base = transacaoRepository.findByDescricaoContainingIgnoreCase(descricao.trim());
+        } else {
+            base = transacaoRepository.listarOrdenadasPorData();
+        }
+
+        String termo = temDescricao ? descricao.trim().toLowerCase() : null;
+        return base.stream()
+                .filter(t -> !temTipo || t.getTipo() == tipo)
+                .filter(t -> termo == null || t.getDescricao().toLowerCase().contains(termo))
+                .sorted(Comparator.comparing(Transacao::getData).reversed()
+                        .thenComparing(Transacao::getId, Comparator.reverseOrder()))
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }

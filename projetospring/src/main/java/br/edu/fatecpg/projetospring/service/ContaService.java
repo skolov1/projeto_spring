@@ -2,6 +2,8 @@ package br.edu.fatecpg.projetospring.service;
 
 import br.edu.fatecpg.projetospring.dto.request.ContaRequestDTO;
 import br.edu.fatecpg.projetospring.dto.response.ContaResponseDTO;
+import br.edu.fatecpg.projetospring.dto.response.DespesaPorCategoriaResponseDTO;
+import br.edu.fatecpg.projetospring.model.enum_.TipoTransacao;
 import br.edu.fatecpg.projetospring.dto.response.SaldoResponseDTO;
 import br.edu.fatecpg.projetospring.dto.response.ResumoFinanceiroResponseDTO;
 import br.edu.fatecpg.projetospring.exception.ContaNaoEncontradaException;
@@ -82,6 +84,15 @@ public class ContaService {
         BigDecimal despesas = resumo.getDespesas() != null ? resumo.getDespesas() : BigDecimal.ZERO;
 
         return new ResumoFinanceiroResponseDTO(conta.getId(), conta.getNome(), receitas, despesas);
+    }
+
+    public List<DespesaPorCategoriaResponseDTO> despesasPorCategoria(Long id) {
+        if (!contaRepository.existsById(id)) {
+            throw new ContaNaoEncontradaException(id);
+        }
+        return transacaoRepository.somarPorCategoria(id, TipoTransacao.DESPESA).stream()
+                .map(d -> new DespesaPorCategoriaResponseDTO(d.getCategoria(), d.getTotal()))
+                .collect(Collectors.toList());
     }
 
     private ContaResponseDTO toResponseDTO(Conta conta) {

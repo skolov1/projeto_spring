@@ -1,5 +1,6 @@
 package br.edu.fatecpg.projetospring.controller;
 
+import br.edu.fatecpg.projetospring.model.enum_.TipoTransacao;
 import br.edu.fatecpg.projetospring.service.ContaService;
 import br.edu.fatecpg.projetospring.service.TransacaoService;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest({ContaController.class, TransacaoController.class})
+@WebMvcTest({ContaController.class, TransacaoController.class, TransacaoGeralController.class})
 @ActiveProfiles("test")
 class RotasControllerTest {
 
@@ -49,5 +50,23 @@ class RotasControllerTest {
                 .andExpect(status().isOk());
 
         verify(contaService).buscarPorIdComTransacoes(1L);
+    }
+
+    @Test
+    @DisplayName("GET /transacoes deve listar transações de todas as contas com filtros")
+    void listagemGeralDeTransacoes() throws Exception {
+        mockMvc.perform(get("/transacoes").param("tipo", "DESPESA").param("descricao", "aluguel"))
+                .andExpect(status().isOk());
+
+        verify(transacaoService).listarTodas(eq(TipoTransacao.DESPESA), eq("aluguel"), isNull(), isNull());
+    }
+
+    @Test
+    @DisplayName("GET /contas/{id}/despesas-por-categoria deve usar ContaService")
+    void despesasPorCategoria() throws Exception {
+        mockMvc.perform(get("/contas/1/despesas-por-categoria"))
+                .andExpect(status().isOk());
+
+        verify(contaService).despesasPorCategoria(1L);
     }
 }

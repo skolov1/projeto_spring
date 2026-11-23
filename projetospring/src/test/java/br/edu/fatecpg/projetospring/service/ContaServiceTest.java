@@ -8,6 +8,8 @@ import br.edu.fatecpg.projetospring.exception.ContaNaoEncontradaException;
 import br.edu.fatecpg.projetospring.model.entity.Conta;
 import br.edu.fatecpg.projetospring.model.entity.Transacao;
 import br.edu.fatecpg.projetospring.model.enum_.TipoTransacao;
+import br.edu.fatecpg.projetospring.dto.response.DespesaPorCategoriaResponseDTO;
+import br.edu.fatecpg.projetospring.model.projection.DespesaPorCategoria;
 import br.edu.fatecpg.projetospring.model.projection.ResumoFinanceiro;
 import br.edu.fatecpg.projetospring.repository.ContaRepository;
 import br.edu.fatecpg.projetospring.repository.TransacaoRepository;
@@ -163,6 +165,31 @@ class ContaServiceTest {
         assertEquals(BigDecimal.ZERO, result.getTotalReceitas());
         assertEquals(new BigDecimal("1500.00"), result.getTotalDespesas());
         assertEquals(new BigDecimal("-500.00"), result.getSaldoAtual());
+    }
+
+    @Test
+    @DisplayName("Deve retornar despesas agrupadas por categoria")
+    void deveRetornarDespesasPorCategoria() {
+        DespesaPorCategoria moradia = mock(DespesaPorCategoria.class);
+        when(moradia.getCategoria()).thenReturn("Moradia");
+        when(moradia.getTotal()).thenReturn(new BigDecimal("1500.00"));
+        when(contaRepository.existsById(1L)).thenReturn(true);
+        when(transacaoRepository.somarPorCategoria(1L, TipoTransacao.DESPESA)).thenReturn(List.of(moradia));
+
+        List<DespesaPorCategoriaResponseDTO> result = contaService.despesasPorCategoria(1L);
+
+        assertEquals(1, result.size());
+        assertEquals("Moradia", result.get(0).getCategoria());
+        assertEquals(new BigDecimal("1500.00"), result.get(0).getTotal());
+    }
+
+    @Test
+    @DisplayName("Despesas por categoria de conta inexistente deve lançar exceção")
+    void despesasPorCategoriaDeContaInexistente() {
+        when(contaRepository.existsById(999L)).thenReturn(false);
+
+        assertThrows(ContaNaoEncontradaException.class, () -> contaService.despesasPorCategoria(999L));
+        verifyNoInteractions(transacaoRepository);
     }
 
     @Test

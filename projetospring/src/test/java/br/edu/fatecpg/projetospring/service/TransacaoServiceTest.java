@@ -89,6 +89,58 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Listagem geral sem filtros deve usar a JPQL listarOrdenadasPorData")
+    void listagemGeralSemFiltrosDeveUsarJpql() {
+        when(transacaoRepository.listarOrdenadasPorData()).thenReturn(List.of(transacao));
+
+        assertEquals(1, transacaoService.listarTodas(null, null, null, null).size());
+        verify(transacaoRepository).listarOrdenadasPorData();
+    }
+
+    @Test
+    @DisplayName("Listagem geral por tipo deve usar a derivada findByTipo")
+    void listagemGeralPorTipoDeveUsarFindByTipo() {
+        when(transacaoRepository.findByTipo(TipoTransacao.RECEITA)).thenReturn(List.of(transacao));
+
+        assertEquals(1, transacaoService.listarTodas(TipoTransacao.RECEITA, null, null, null).size());
+        verify(transacaoRepository).findByTipo(TipoTransacao.RECEITA);
+    }
+
+    @Test
+    @DisplayName("Listagem geral por descrição deve usar a derivada findByDescricaoContainingIgnoreCase")
+    void listagemGeralPorDescricaoDeveUsarDerivada() {
+        when(transacaoRepository.findByDescricaoContainingIgnoreCase("tes")).thenReturn(List.of(transacao));
+
+        assertEquals(1, transacaoService.listarTodas(null, " tes ", null, null).size());
+        verify(transacaoRepository).findByDescricaoContainingIgnoreCase("tes");
+    }
+
+    @Test
+    @DisplayName("Listagem geral por período deve usar findByDataBetween e combinar os demais filtros")
+    void listagemGeralPorPeriodoDeveCombinarFiltros() {
+        LocalDate inicio = LocalDate.of(2026, 1, 1);
+        LocalDate fim = LocalDate.of(2026, 1, 31);
+        Transacao despesa = new Transacao("Aluguel", new BigDecimal("900.00"), TipoTransacao.DESPESA, LocalDate.of(2026, 1, 10), null);
+        setId(despesa, 2L);
+        Transacao outraReceita = new Transacao("Teste B", new BigDecimal("50.00"), TipoTransacao.RECEITA, LocalDate.of(2026, 1, 20), null);
+        setId(outraReceita, 3L);
+        when(transacaoRepository.findByDataBetween(inicio, fim)).thenReturn(List.of(transacao, despesa, outraReceita));
+
+        List<TransacaoResponseDTO> result = transacaoService.listarTodas(TipoTransacao.RECEITA, "teste", inicio, fim);
+
+        assertEquals(List.of(3L, 1L), result.stream().map(TransacaoResponseDTO::getId).toList());
+        verify(transacaoRepository, never()).findByTipo(any());
+    }
+
+    @Test
+    @DisplayName("Listagem geral deve validar o período")
+    void listagemGeralDeveValidarPeriodo() {
+        assertThrows(BusinessException.class,
+                () -> transacaoService.listarTodas(null, null, LocalDate.of(2026, 1, 1), null));
+        verifyNoInteractions(transacaoRepository);
+    }
+
+    @Test
     @DisplayName("Deve rejeitar período com apenas a data inicial")
     void deveRejeitarPeriodoSoComInicio() {
         BusinessException ex = assertThrows(BusinessException.class,

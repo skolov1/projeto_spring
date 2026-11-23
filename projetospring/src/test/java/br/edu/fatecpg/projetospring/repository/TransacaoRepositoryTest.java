@@ -3,6 +3,7 @@ package br.edu.fatecpg.projetospring.repository;
 import br.edu.fatecpg.projetospring.model.entity.Conta;
 import br.edu.fatecpg.projetospring.model.entity.Transacao;
 import br.edu.fatecpg.projetospring.model.enum_.TipoTransacao;
+import br.edu.fatecpg.projetospring.model.projection.DespesaPorCategoria;
 import br.edu.fatecpg.projetospring.model.projection.ResumoFinanceiro;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -198,6 +199,29 @@ class TransacaoRepositoryTest {
 
         assertEquals(4, transacoesContaOriginal.size());
         assertEquals(1, transacoesOutraConta.size());
+    }
+
+    @Test
+    @DisplayName("JPQL: deve somar despesas por categoria, agrupando as sem categoria")
+    void deveSomarDespesasPorCategoria() {
+        Transacao condominio = new Transacao("Condomínio", new BigDecimal("400.00"), TipoTransacao.DESPESA, LocalDate.of(2026, 1, 12), "Moradia");
+        Transacao semCategoria1 = new Transacao("Diversos", new BigDecimal("30.00"), TipoTransacao.DESPESA, LocalDate.of(2026, 1, 13), null);
+        Transacao semCategoria2 = new Transacao("Outros", new BigDecimal("20.00"), TipoTransacao.DESPESA, LocalDate.of(2026, 1, 14), null);
+        conta.adicionarTransacao(condominio);
+        conta.adicionarTransacao(semCategoria1);
+        conta.adicionarTransacao(semCategoria2);
+        entityManager.persist(condominio);
+        entityManager.persist(semCategoria1);
+        entityManager.persist(semCategoria2);
+        entityManager.flush();
+
+        List<DespesaPorCategoria> resultado = transacaoRepository.somarPorCategoria(conta.getId(), TipoTransacao.DESPESA);
+
+        assertEquals(List.of("Moradia", "Alimentação", "Sem categoria"),
+                resultado.stream().map(DespesaPorCategoria::getCategoria).toList());
+        assertEquals(0, new BigDecimal("1900.00").compareTo(resultado.get(0).getTotal())); // 1500 + 400
+        assertEquals(0, new BigDecimal("800.00").compareTo(resultado.get(1).getTotal()));
+        assertEquals(0, new BigDecimal("50.00").compareTo(resultado.get(2).getTotal()));
     }
 
     @Test

@@ -2,6 +2,7 @@ package br.edu.fatecpg.projetospring.controller;
 
 import br.edu.fatecpg.projetospring.dto.request.ContaRequestDTO;
 import br.edu.fatecpg.projetospring.dto.response.ContaResponseDTO;
+import br.edu.fatecpg.projetospring.dto.response.DespesaPorCategoriaResponseDTO;
 import br.edu.fatecpg.projetospring.dto.response.SaldoResponseDTO;
 import br.edu.fatecpg.projetospring.dto.response.ResumoFinanceiroResponseDTO;
 import br.edu.fatecpg.projetospring.service.ContaService;
@@ -61,5 +62,11 @@ public class ContaController {
     @Operation(summary = "Obter resumo financeiro (receitas e despesas)")
     public ResponseEntity<ResumoFinanceiroResponseDTO> obterResumo(@Parameter(description = "ID da conta") @PathVariable Long id) {
         return ResponseEntity.ok(contaService.obterResumo(id));
+    }
+
+    @GetMapping("/{id}/despesas-por-categoria")
+    @Operation(summary = "Total de despesas agrupado por categoria (JPQL)")
+    public ResponseEntity<List<DespesaPorCategoriaResponseDTO>> despesasPorCategoria(@Parameter(description = "ID da conta") @PathVariable Long id) {
+        return ResponseEntity.ok(contaService.despesasPorCategoria(id));
     }
 }
