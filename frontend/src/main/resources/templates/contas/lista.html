@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: pagina('Minhas Contas', ~{::section})}">
+<body>
+<section>
+    <div class="page-header">
+        <h1 class="page-title">Minhas Contas</h1>
+        <a class="btn" th:href="@{/contas/nova}">+ Nova Conta</a>
+    </div>
+
+    <div class="summary-grid" th:if="${resumo != null}">
+        <div class="card">
+            <span class="card-label">Saldo Total</span>
+            <span class="card-value text-accent"
+                  th:text="${#numbers.formatCurrency(resumo.saldoTotal)}">R$ 0,00</span>
+        </div>
+        <div class="card">
+            <span class="card-label">Receitas</span>
+            <span class="card-value text-income"
+                  th:text="${#numbers.formatCurrency(resumo.totalReceitas)}">R$ 0,00</span>
+        </div>
+        <div class="card">
+            <span class="card-label">Despesas</span>
+            <span class="card-value text-expense"
+                  th:text="${#numbers.formatCurrency(resumo.totalDespesas)}">R$ 0,00</span>
+        </div>
+    </div>
+
+    <div class="card" th:if="${#lists.isEmpty(contas)}">
+        <p class="card-label">Nenhuma conta cadastrada ainda.</p>
+        <a class="btn" style="margin-top: 0.75rem;" th:href="@{/contas/nova}">Cadastrar primeira conta</a>
+    </div>
+
+    <div class="accounts-grid" th:if="${!#lists.isEmpty(contas)}">
+        <div class="card account-card" th:each="conta : ${contas}">
+            <div>
+                <div class="account-card-header">
+                    <h2 class="account-name" th:text="${conta.nome}">Nome da Conta</h2>
+                    <span class="badge" th:text="${conta.tipo}">Corrente</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <span class="card-label">Saldo Atual</span>
+                    <span class="card-value"
+                          th:classappend="${conta.saldo >= 0} ? 'text-accent' : 'text-expense'"
+                          th:text="${#numbers.formatCurrency(conta.saldo)}">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="account-actions">
+                <a class="btn btn-sm" th:href="@{/contas/{id}/transacoes(id=${conta.id})}">Ver Extrato</a>
+                <a class="btn btn-ghost btn-sm" th:href="@{/contas/{id}/editar(id=${conta.id})}">Editar</a>
+                <form th:action="@{/contas/{id}/excluir(id=${conta.id})}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Deseja realmente excluir esta conta?');">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
