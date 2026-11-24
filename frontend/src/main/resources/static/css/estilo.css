@@ -1,0 +1,321 @@
+﻿:root {
+    --bg: #112A36;
+    --surface: #1C4659;
+    --surface-hover: #22546B;
+    --primary: #0F668C;
+    --primary-hover: #147AA6;
+    --accent: #76CCF2;
+    --text: #E3F6FF;
+    --muted: #B5E8FF;
+    --border: rgba(181, 232, 255, 0.16);
+    --income: #4ADE80;
+    --expense: #F87171;
+    --success-bg: rgba(74, 222, 128, 0.14);
+    --success-text: #86EFAC;
+    --error-bg: rgba(248, 113, 113, 0.14);
+    --error-text: #FCA5A5;
+    --radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Lexend', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    letter-spacing: 0.02em;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra superior */
+.topbar {
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+}
+
+.topbar-inner {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.03em;
+}
+
+.nav a {
+    color: var(--muted);
+    text-decoration: none;
+    margin-left: 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.nav a:hover {
+    color: var(--accent);
+}
+
+/* Container principal */
+.container {
+    width: 100%;
+    max-width: 1040px;
+    margin: 2.25rem auto;
+    padding: 0 1.25rem;
+    flex: 1;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Grids de Cards */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cards */
+.card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+    border-color: rgba(118, 204, 242, 0.45);
+}
+
+.card-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.card-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.03em;
+}
+
+.text-accent { color: var(--accent); }
+.text-income { color: var(--income); }
+.text-expense { color: var(--expense); }
+
+/* Card de Conta */
+.account-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.25rem;
+}
+
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.account-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.badge {
+    background-color: rgba(118, 204, 242, 0.14);
+    color: var(--accent);
+    border: 1px solid rgba(118, 204, 242, 0.3);
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.account-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+/* Botões */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary);
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.55rem 1.05rem;
+    border-radius: 8px;
+    border: 1px solid rgba(118, 204, 242, 0.25);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--accent);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.btn-ghost:hover {
+    background-color: rgba(181, 232, 255, 0.08);
+    color: var(--text);
+}
+
+.btn-danger {
+    background-color: transparent;
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: var(--expense);
+}
+
+.btn-danger:hover {
+    background-color: var(--error-bg);
+    border-color: var(--expense);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+}
+
+/* Tabelas (Extrato) */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.table th,
+.table td {
+    padding: 0.9rem 1.1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.table th {
+    background-color: rgba(17, 42, 54, 0.55);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Formulários */
+.form-group {
+    margin-bottom: 1.15rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+}
+
+.form-control {
+    width: 100%;
+    background-color: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Alertas */
+.alert {
+    padding: 0.9rem 1.1rem;
+    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.alert-error {
+    background-color: var(--error-bg);
+    color: var(--error-text);
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+/* Rodapé */
+.footer {
+    text-align: center;
+    padding: 1.25rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    background-color: var(--surface);
+}
