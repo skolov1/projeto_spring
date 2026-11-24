@@ -1,36 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="pagina(titulo, conteudo)">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${titulo} + ' - Finanças Pessoais'">Finanças Pessoais</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' | Finanças Pessoais'">Finanças Pessoais</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
 </head>
 <body>
-    <header class="topbar">
-        <div class="topbar-inner">
-            <a class="brand" th:href="@{/contas}">Finanças Pessoais</a>
-            <nav class="nav">
-                <a th:href="@{/contas}">Contas</a>
-                <a th:href="@{/contas/nova}">Nova Conta</a>
-            </nav>
-        </div>
-    </header>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" th:href="@{/contas}">Finanças <span>Pessoais</span></a>
+        <nav class="nav">
+            <a th:href="@{/contas}">Contas</a>
+            <a th:href="@{/contas/nova}">Nova conta</a>
+        </nav>
+    </div>
+</header>
 
-    <main class="container">
-        <div class="alert alert-error" th:if="${erro}" th:text="${erro}"></div>
-        <div class="alert alert-success" th:if="${mensagem}" th:text="${mensagem}"></div>
+<main class="container">
+    <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}">Mensagem de erro</div>
+    <div class="alert alert-success" role="status" th:if="${mensagem}" th:text="${mensagem}">Mensagem de sucesso</div>
 
-        <div th:insert="${conteudo}">
-            <p>Conteúdo da página</p>
-        </div>
-    </main>
+    <th:block th:replace="${conteudo}">conteúdo da página</th:block>
+</main>
 
-    <footer class="footer">
-        <p>Controle de Finanças Pessoais</p>
-    </footer>
+<footer class="footer">
+    Finanças Pessoais · FATEC Praia Grande · Técnicas de Programação II
+</footer>
 </body>
 </html>

@@ -1,45 +1,36 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: pagina(${contaId != null ? 'Editar Conta' : 'Nova Conta'}, ~{::section})}">
+      th:replace="~{fragments/layout :: pagina(${titulo}, ~{::conteudo})}">
+<head><meta charset="UTF-8"><title>Conta</title></head>
 <body>
-<section>
-    <div class="page-header">
-        <h1 class="page-title" th:text="${contaId != null ? 'Editar Conta' : 'Nova Conta'}">Nova Conta</h1>
-        <a class="btn btn-ghost" th:href="@{/contas}">Voltar</a>
+<div th:fragment="conteudo">
+    <div class="page-head">
+        <div>
+            <a class="link-voltar" th:href="@{/contas}">← Voltar para contas</a>
+            <h1 th:text="${titulo}">Nova conta</h1>
+        </div>
     </div>
 
-    <div class="card" style="max-width: 540px;">
-        <form th:action="${contaId != null} ? @{/contas/{id}(id=${contaId})} : @{/contas}"
-              th:object="${conta}" method="post">
+    <form class="card form-narrow" th:action="@{${acao}}" th:object="${contaForm}" method="post">
+        <div class="field">
+            <label for="nome">Nome da conta</label>
+            <input class="form-control" type="text" id="nome" th:field="*{nome}" maxlength="100" required
+                   placeholder="Ex.: Carteira, Conta corrente">
+            <small class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Erro</small>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label" for="nome">Nome da Conta</label>
-                <input class="form-control" type="text" id="nome" th:field="*{nome}"
-                       placeholder="Ex: Nubank, Carteira, Itaú" required>
-            </div>
+        <div class="field" style="margin-top: 1rem;">
+            <label for="saldoInicial">Saldo inicial (R$)</label>
+            <input class="form-control" type="number" id="saldoInicial" th:field="*{saldoInicial}"
+                   step="0.01" min="0" required>
+            <small class="field-error" th:if="${#fields.hasErrors('saldoInicial')}" th:errors="*{saldoInicial}">Erro</small>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label" for="tipo">Tipo de Conta</label>
-                <select class="form-control" id="tipo" th:field="*{tipo}" required>
-                    <option value="CORRENTE">Conta Corrente</option>
-                    <option value="POUPANCA">Poupança</option>
-                    <option value="CARTEIRA">Carteira</option>
-                    <option value="INVESTIMENTO">Investimento</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="saldoInicial">Saldo Inicial (R$)</label>
-                <input class="form-control" type="number" step="0.01" id="saldoInicial"
-                       th:field="*{saldoInicial}" placeholder="0.00" required>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
-                <button type="submit" class="btn">Salvar Conta</button>
-                <a class="btn btn-ghost" th:href="@{/contas}">Cancelar</a>
-            </div>
-        </form>
-    </div>
-</section>
+        <div class="form-actions">
+            <button type="submit" class="btn" th:text="${editando} ? 'Salvar alterações' : 'Criar conta'">Salvar</button>
+            <a class="btn btn-ghost" th:href="@{/contas}">Cancelar</a>
+        </div>
+    </form>
+</div>
 </body>
 </html>

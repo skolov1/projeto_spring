@@ -1,61 +1,62 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: pagina('Minhas Contas', ~{::section})}">
+      th:replace="~{fragments/layout :: pagina('Contas', ~{::conteudo})}">
+<head><meta charset="UTF-8"><title>Contas</title></head>
 <body>
-<section>
-    <div class="page-header">
-        <h1 class="page-title">Minhas Contas</h1>
-        <a class="btn" th:href="@{/contas/nova}">+ Nova Conta</a>
+<div th:fragment="conteudo">
+    <div class="page-head">
+        <div>
+            <h1>Minhas contas</h1>
+            <p class="muted">Visão geral do saldo, das receitas e das despesas.</p>
+        </div>
+        <a class="btn" th:href="@{/contas/nova}">+ Nova conta</a>
     </div>
 
-    <div class="summary-grid" th:if="${resumo != null}">
-        <div class="card">
-            <span class="card-label">Saldo Total</span>
-            <span class="card-value text-accent"
-                  th:text="${#numbers.formatCurrency(resumo.saldoTotal)}">R$ 0,00</span>
-        </div>
-        <div class="card">
-            <span class="card-label">Receitas</span>
-            <span class="card-value text-income"
-                  th:text="${#numbers.formatCurrency(resumo.totalReceitas)}">R$ 0,00</span>
-        </div>
-        <div class="card">
-            <span class="card-label">Despesas</span>
-            <span class="card-value text-expense"
-                  th:text="${#numbers.formatCurrency(resumo.totalDespesas)}">R$ 0,00</span>
-        </div>
-    </div>
+    <section class="summary-grid">
+        <article class="card summary-card">
+            <span class="label">Saldo total</span>
+            <strong class="value" th:classappend="${saldoTotal.signum() lt 0} ? 'negative'"
+                    th:text="${@fmt.moeda(saldoTotal)}">R$ 0,00</strong>
+        </article>
+        <article class="card summary-card">
+            <span class="label">Receitas</span>
+            <strong class="value positive" th:text="${@fmt.moeda(receitasTotal)}">R$ 0,00</strong>
+        </article>
+        <article class="card summary-card">
+            <span class="label">Despesas</span>
+            <strong class="value negative" th:text="${@fmt.moeda(despesasTotal)}">R$ 0,00</strong>
+        </article>
+    </section>
 
-    <div class="card" th:if="${#lists.isEmpty(contas)}">
-        <p class="card-label">Nenhuma conta cadastrada ainda.</p>
-        <a class="btn" style="margin-top: 0.75rem;" th:href="@{/contas/nova}">Cadastrar primeira conta</a>
-    </div>
-
-    <div class="accounts-grid" th:if="${!#lists.isEmpty(contas)}">
-        <div class="card account-card" th:each="conta : ${contas}">
-            <div>
-                <div class="account-card-header">
-                    <h2 class="account-name" th:text="${conta.nome}">Nome da Conta</h2>
-                    <span class="badge" th:text="${conta.tipo}">Corrente</span>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <span class="card-label">Saldo Atual</span>
-                    <span class="card-value"
-                          th:classappend="${conta.saldo >= 0} ? 'text-accent' : 'text-expense'"
-                          th:text="${#numbers.formatCurrency(conta.saldo)}">R$ 0,00</span>
-                </div>
+    <section class="accounts-grid" th:if="${!cards.isEmpty()}">
+        <article class="card account-card" th:each="item : ${cards}">
+            <div class="account-head">
+                <h2 th:text="${item.conta.nome}">Conta</h2>
+                <span class="badge" th:text="'#' + ${item.conta.id}">#1</span>
             </div>
-
-            <div class="account-actions">
-                <a class="btn btn-sm" th:href="@{/contas/{id}/transacoes(id=${conta.id})}">Ver Extrato</a>
-                <a class="btn btn-ghost btn-sm" th:href="@{/contas/{id}/editar(id=${conta.id})}">Editar</a>
-                <form th:action="@{/contas/{id}/excluir(id=${conta.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Deseja realmente excluir esta conta?');">Excluir</button>
+            <div>
+                <span class="muted">Saldo atual</span><br>
+                <strong class="account-balance" th:classappend="${item.conta.saldoAtual.signum() lt 0} ? 'negative'"
+                        th:text="${@fmt.moeda(item.conta.saldoAtual)}">R$ 0,00</strong>
+            </div>
+            <div class="account-totals">
+                <span>Receitas: <strong class="positive" th:text="${@fmt.moeda(item.receitas)}">R$ 0,00</strong></span>
+                <span>Despesas: <strong class="negative" th:text="${@fmt.moeda(item.despesas)}">R$ 0,00</strong></span>
+            </div>
+            <div class="actions">
+                <a class="btn btn-sm" th:href="@{/contas/{id}/transacoes(id=${item.conta.id})}">Ver extrato</a>
+                <a class="btn btn-sm btn-ghost" th:href="@{/contas/{id}/editar(id=${item.conta.id})}">Editar</a>
+                <form th:action="@{/contas/{id}/excluir(id=${item.conta.id})}" method="post"
+                      onsubmit="return confirm('Excluir esta conta e todas as transações dela?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
                 </form>
             </div>
-        </div>
-    </div>
-</section>
+        </article>
+    </section>
+
+    <p class="empty card" th:if="${cards.isEmpty()}">
+        Nenhuma conta cadastrada ainda. Clique em "Nova conta" para começar.
+    </p>
+</div>
 </body>
 </html>

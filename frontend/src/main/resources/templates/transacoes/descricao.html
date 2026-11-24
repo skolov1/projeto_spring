@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: pagina('Editar descrição', ~{::conteudo})}">
+<head><meta charset="UTF-8"><title>Editar descrição</title></head>
+<body>
+<div th:fragment="conteudo">
+    <div class="page-head">
+        <div>
+            <a class="link-voltar" th:href="@{/contas/{id}/transacoes(id=${contaId})}">← Voltar para o extrato</a>
+            <h1>Editar descrição</h1>
+            <p class="muted">Só a descrição pode ser alterada; valor, tipo e data ficam como estão.</p>
+        </div>
+    </div>
+
+    <form class="card form-narrow" th:object="${descricaoForm}" method="post"
+          th:action="@{/contas/{c}/transacoes/{t}/descricao(c=${contaId},t=${transacao.id})}">
+        <div class="field">
+            <label for="novaDescricao">Descrição</label>
+            <input class="form-control" type="text" id="novaDescricao" th:field="*{novaDescricao}"
+                   maxlength="255" required>
+            <small class="field-error" th:if="${#fields.hasErrors('novaDescricao')}" th:errors="*{novaDescricao}">Erro</small>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Salvar</button>
+            <a class="btn btn-ghost" th:href="@{/contas/{id}/transacoes(id=${contaId})}">Cancelar</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

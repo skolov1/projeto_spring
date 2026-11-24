@@ -1,111 +1,174 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: pagina('Extrato - ' + ${conta.nome}, ~{::section})}">
+      th:replace="~{fragments/layout :: pagina('Extrato', ~{::conteudo})}">
+<head><meta charset="UTF-8"><title>Extrato</title></head>
 <body>
-<section>
-    <div class="page-header">
+<div th:fragment="conteudo">
+    <div class="page-head">
         <div>
-            <h1 class="page-title" th:text="${conta.nome}">Nome da Conta</h1>
-            <span class="badge" th:text="${conta.tipo}">Corrente</span>
+            <a class="link-voltar" th:href="@{/contas}">← Voltar para contas</a>
+            <h1 th:text="'Extrato · ' + ${conta.nome}">Extrato</h1>
         </div>
-        <a class="btn btn-ghost" th:href="@{/contas}">Voltar para Contas</a>
+        <a class="btn btn-ghost" th:href="@{/contas/{id}/editar(id=${conta.id})}">Editar conta</a>
     </div>
 
-    <div class="summary-grid" th:if="${saldo != null}">
-        <div class="card">
-            <span class="card-label">Saldo Atual</span>
-            <span class="card-value text-accent"
-                  th:text="${#numbers.formatCurrency(saldo.saldoAtual)}">R$ 0,00</span>
-        </div>
-        <div class="card">
-            <span class="card-label">Total Receitas</span>
-            <span class="card-value text-income"
-                  th:text="${#numbers.formatCurrency(saldo.totalReceitas)}">R$ 0,00</span>
-        </div>
-        <div class="card">
-            <span class="card-label">Total Despesas</span>
-            <span class="card-value text-expense"
-                  th:text="${#numbers.formatCurrency(saldo.totalDespesas)}">R$ 0,00</span>
-        </div>
-    </div>
+    <!-- Painel: saldo, receitas e despesas -->
+    <section class="summary-grid">
+        <article class="card summary-card">
+            <span class="label">Saldo atual</span>
+            <strong class="value" th:classappend="${conta.saldoAtual.signum() lt 0} ? 'negative'"
+                    th:text="${@fmt.moeda(conta.saldoAtual)}">R$ 0,00</strong>
+        </article>
+        <article class="card summary-card">
+            <span class="label">Receitas</span>
+            <strong class="value positive" th:text="${@fmt.moeda(receitas)}">R$ 0,00</strong>
+        </article>
+        <article class="card summary-card">
+            <span class="label">Despesas</span>
+            <strong class="value negative" th:text="${@fmt.moeda(despesas)}">R$ 0,00</strong>
+        </article>
+    </section>
 
-    <div class="card" style="margin-bottom: 2rem;">
-        <h2 class="account-name" style="margin-bottom: 1rem;">Novo Lançamento</h2>
-        <form th:action="@{/contas/{id}/transacoes(id=${conta.id})}"
-              th:object="${novaTransacao}" method="post"
-              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;">
+    <!-- Gráfico de despesas por categoria (opcional do PDF) -->
+    <section class="card" th:if="${!catNomes.isEmpty()}" style="margin-bottom: 1.75rem;">
+        <h2>Despesas por categoria</h2>
+        <div class="chart-box"><canvas id="graficoCategorias" aria-label="Gráfico de despesas por categoria" role="img"></canvas></div>
+    </section>
 
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="descricao">Descrição</label>
-                <input class="form-control" type="text" id="descricao" th:field="*{descricao}"
-                       placeholder="Ex: Salário, Mercado" required>
+    <!-- Novo lançamento -->
+    <section class="card" style="margin-bottom: 1.75rem;">
+        <h2>Novo lançamento</h2>
+        <form th:action="@{/contas/{id}/transacoes(id=${conta.id})}" th:object="${transacaoForm}" method="post">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="descricao">Descrição</label>
+                    <input class="form-control" type="text" id="descricao" th:field="*{descricao}" maxlength="255" required>
+                    <small class="field-error" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}">Erro</small>
+                </div>
+                <div class="field">
+                    <label for="valor">Valor (R$)</label>
+                    <input class="form-control" type="number" id="valor" th:field="*{valor}" step="0.01" min="0.01" required>
+                    <small class="field-error" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}">Erro</small>
+                </div>
+                <div class="field">
+                    <label for="tipo">Tipo</label>
+                    <select class="form-control" id="tipo" th:field="*{tipo}" required>
+                        <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.rotulo}">Receita</option>
+                    </select>
+                    <small class="field-error" th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}">Erro</small>
+                </div>
+                <div class="field">
+                    <label for="categoria">Categoria (opcional)</label>
+                    <input class="form-control" type="text" id="categoria" th:field="*{categoria}" maxlength="100">
+                    <small class="field-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}">Erro</small>
+                </div>
+                <div class="field">
+                    <label for="data">Data</label>
+                    <input class="form-control" type="date" id="data" th:field="*{data}" required>
+                    <small class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}">Erro</small>
+                </div>
             </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="valor">Valor (R$)</label>
-                <input class="form-control" type="number" step="0.01" min="0.01" id="valor"
-                       th:field="*{valor}" placeholder="0.00" required>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="tipo">Tipo</label>
-                <select class="form-control" id="tipo" th:field="*{tipo}" required>
-                    <option value="RECEITA">Receita (+)</option>
-                    <option value="DESPESA">Despesa (-)</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="categoria">Categoria</label>
-                <input class="form-control" type="text" id="categoria" th:field="*{categoria}"
-                       placeholder="Ex: Alimentação" required>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="data">Data</label>
-                <input class="form-control" type="date" id="data" th:field="*{data}" required>
-            </div>
-
-            <div>
-                <button type="submit" class="btn" style="width: 100%;">Adicionar</button>
+            <div class="form-actions">
+                <button type="submit" class="btn">Registrar</button>
             </div>
         </form>
-    </div>
+    </section>
 
-    <div class="card" th:if="${#lists.isEmpty(transacoes)}">
-        <p class="card-label">Nenhuma transação registrada nesta conta.</p>
-    </div>
+    <!-- Filtros do extrato -->
+    <section class="card" style="margin-bottom: 1.75rem;">
+        <h2>Filtrar extrato</h2>
+        <form th:action="@{/contas/{id}/transacoes(id=${conta.id})}" method="get">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="filtroTipo">Tipo</label>
+                    <select class="form-control" id="filtroTipo" name="tipo">
+                        <option value="">Todos</option>
+                        <option th:each="t : ${tipos}" th:value="${t}" th:text="${t.rotulo}"
+                                th:selected="${filtroTipo != null and filtroTipo == t.name()}">Receita</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="filtroDescricao">Descrição contém</label>
+                    <input class="form-control" type="text" id="filtroDescricao" name="descricao" th:value="${filtroDescricao}">
+                </div>
+                <div class="field">
+                    <label for="filtroInicio">De</label>
+                    <input class="form-control" type="date" id="filtroInicio" name="inicio" th:value="${filtroInicio}">
+                </div>
+                <div class="field">
+                    <label for="filtroFim">Até</label>
+                    <input class="form-control" type="date" id="filtroFim" name="fim" th:value="${filtroFim}">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Filtrar</button>
+                <a class="btn btn-ghost" th:if="${temFiltro}" th:href="@{/contas/{id}/transacoes(id=${conta.id})}">Limpar filtros</a>
+            </div>
+        </form>
+    </section>
 
-    <table class="table" th:if="${!#lists.isEmpty(transacoes)}">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Categoria</th>
-                <th>Tipo</th>
-                <th>Valor</th>
-                <th>Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="t : ${transacoes}">
-                <td th:text="${t.data}">2026-01-01</td>
-                <td th:text="${t.descricao}">Descrição</td>
-                <td><span class="badge" th:text="${t.categoria}">Categoria</span></td>
-                <td th:text="${t.tipo}">RECEITA</td>
-                <td th:classappend="${t.tipo == 'RECEITA'} ? 'text-income' : 'text-expense'"
-                    style="font-weight: 600;"
-                    th:text="${(t.tipo == 'RECEITA' ? '+ ' : '- ') + #numbers.formatCurrency(t.valor)}">R$ 0,00</td>
-                <td>
-                    <form th:action="@{/contas/{contaId}/transacoes/{id}/excluir(contaId=${conta.id}, id=${t.id})}"
-                          method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-danger btn-sm"
-                                onclick="return confirm('Excluir esta transação?');">Excluir</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</section>
+    <!-- Extrato ordenado por data (mais recente primeiro) -->
+    <section class="card">
+        <h2>Transações</h2>
+        <div class="table-wrap" th:if="${!transacoes.isEmpty()}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Descrição</th>
+                    <th>Categoria</th>
+                    <th>Tipo</th>
+                    <th class="num">Valor</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transacoes}">
+                    <td th:text="${@fmt.data(t.data)}">01/01/2026</td>
+                    <td th:text="${t.descricao}">Descrição</td>
+                    <td th:text="${t.categoria} ?: '—'">Categoria</td>
+                    <td>
+                        <span class="badge" th:classappend="${t.receita} ? 'badge-receita' : 'badge-despesa'"
+                              th:text="${t.receita} ? 'Receita' : 'Despesa'">Receita</span>
+                    </td>
+                    <td class="num" th:classappend="${t.receita} ? 'positive' : 'negative'"
+                        th:text="${(t.receita ? '+ ' : '- ') + @fmt.moeda(t.valor)}">+ R$ 0,00</td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn btn-sm btn-ghost"
+                               th:href="@{/contas/{c}/transacoes/{t}/descricao(c=${conta.id},t=${t.id})}">Editar</a>
+                            <form th:action="@{/contas/{c}/transacoes/{t}/excluir(c=${conta.id},t=${t.id})}" method="post"
+                                  onsubmit="return confirm('Excluir esta transação?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="empty" th:if="${transacoes.isEmpty()}">Nenhuma transação encontrada.</p>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" th:if="${!catNomes.isEmpty()}"></script>
+    <script th:inline="javascript" th:if="${!catNomes.isEmpty()}">
+        const nomes = /*[[${catNomes}]]*/ [];
+        const totais = /*[[${catTotais}]]*/ [];
+        new Chart(document.getElementById('graficoCategorias'), {
+            type: 'doughnut',
+            data: {
+                labels: nomes,
+                datasets: [{
+                    data: totais,
+                    backgroundColor: ['#76CCF2', '#0F668C', '#4ADE80', '#F87171', '#FBBF24', '#A78BFA', '#B5E8FF', '#FB923C'],
+                    borderColor: '#1C4659'
+                }]
+            },
+            options: {
+                plugins: { legend: { labels: { color: '#E3F6FF', font: { family: 'Lexend' } } } }
+            }
+        });
+    </script>
+</div>
 </body>
 </html>
