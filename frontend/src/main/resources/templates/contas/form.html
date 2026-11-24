@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: pagina(${titulo}, ~{::conteudo})}">
+<head><meta charset="UTF-8"><title>Conta</title></head>
+<body>
+<div th:fragment="conteudo">
+    <div class="page-head">
+        <div>
+            <a class="link-voltar" th:href="@{/contas}">← Voltar para contas</a>
+            <h1 th:text="${titulo}">Nova conta</h1>
+        </div>
+    </div>
+
+    <form class="card form-narrow" th:action="@{${acao}}" th:object="${contaForm}" method="post">
+        <div class="field">
+            <label for="nome">Nome da conta</label>
+            <input class="form-control" type="text" id="nome" th:field="*{nome}" maxlength="100" required
+                   placeholder="Ex.: Carteira, Conta corrente">
+            <small class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Erro</small>
+        </div>
+
+        <div class="field" style="margin-top: 1rem;">
+            <label for="saldoInicial">Saldo inicial (R$)</label>
+            <input class="form-control" type="number" id="saldoInicial" th:field="*{saldoInicial}"
+                   step="0.01" min="0" required>
+            <small class="field-error" th:if="${#fields.hasErrors('saldoInicial')}" th:errors="*{saldoInicial}">Erro</small>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn" th:text="${editando} ? 'Salvar alterações' : 'Criar conta'">Salvar</button>
+            <a class="btn btn-ghost" th:href="@{/contas}">Cancelar</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
